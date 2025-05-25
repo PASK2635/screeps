@@ -2,15 +2,16 @@ const role = {
   /**
    * Execute the spawner script
    * @param {StructureSpawn} spawner
-   * @param {{limits}} options
+   * @param {*} options
    */
-  run: (spawner, { limits }) => {
-    for (const [role, { amount, body }] in Object.entries(limits)) {
+  run: (spawner, options) => {
+    for (const [role, { amount, body }] of Object.entries(options)) {
       const creepsWithRole = Object.values(Game.creeps).filter(
         (creep) => creep.memory.role === role
       );
-      if (creepsWithRole < amount) {
+      if (creepsWithRole.length < amount) {
         const name = `${role} - ${Game.time}`;
+        console.log(`Spawning new ${role}: ${name}`);
         spawner.spawnCreep(body, name, { memory: { role } });
       }
     }
