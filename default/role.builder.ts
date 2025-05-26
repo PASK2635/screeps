@@ -8,27 +8,36 @@ const building = (creep: Creep): void => {
     creep.say("🚧 Could not find targets");
     return;
   }
-  creep.moveTo(targets[0], {
-    visualizePathStyle: { stroke: "#ffffff" },
-  });
+  if (creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
+    creep.moveTo(targets[0], {
+      visualizePathStyle: { stroke: "#ffffff" },
+    });
+  }
   if (creep.store[RESOURCE_ENERGY] == 0) {
-    creep.memory.state = states.harvesting.name;
+    const changeTo = states.harvesting.name;
+    const state = states[changeTo];
+    creep.say(`${state.emoji} ${changeTo}`);
+    creep.memory.state = changeTo;
   }
 };
 
-const harvesting = (creep: Creep): void => {
+const harvesting = (creep: Creep, state: State): void => {
   const sources = creep.room.find(FIND_SOURCES);
   if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
     creep.moveTo(sources[0], { visualizePathStyle: { stroke: "#ffaa00" } });
   }
   if (creep.store.getFreeCapacity() == 0) {
-    creep.memory.state = states.building.name;
+    const changeTo = states.building.name;
+    const state = states[changeTo];
+    creep.say(`${state.emoji} ${changeTo}`);
+    creep.memory.state = changeTo;
   }
 };
 
 type State = {
   name: string;
-  execute: (creep: Creep) => void;
+  emoji: string;
+  execute: (creep: Creep, state: State) => void;
 };
 
 type States = {
@@ -36,14 +45,14 @@ type States = {
 };
 
 const states: States = {
-  building: { name: "building", execute: building },
-  harvesting: { name: "harvesting", execute: harvesting },
+  building: { name: "building", emoji: "🚧", execute: building },
+  harvesting: { name: "harvesting", emoji: "♻️", execute: harvesting },
 };
 
 export default roleBuilder = {
   run(creep: Creep) {
-    const state = (creep.memory.state as string) ?? states.harvesting.name;
-    creep.say(state);
-    states[state].execute(creep);
+    const state =
+      states[(creep.memory.state as string) ?? states.harvesting.name];
+    state.execute(creep, state);
   },
 };
