@@ -31,7 +31,7 @@ exports.default = roleBuilder = {
     run(creep) {
         var _a;
         const state = (_a = creep.memory.state) !== null && _a !== void 0 ? _a : states.harvesting.name;
-        console.log(`${creep.name} - ${JSON.stringify(state)}`);
+        creep.say(state);
         states[state].execute(creep);
     },
 };
