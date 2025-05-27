@@ -14,22 +14,28 @@ export default class Minion extends Creep {
   }
 
   private isPossible(task: Task): boolean {
-    if (isBuildTask(task) && this.store[RESOURCE_ENERGY] == 0) {
-      console.log(`${this.name} - COULD NOT BUILD`);
-      return false;
+    if (
+      isBuildTask(task) &&
+      this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
+    ) {
+      console.log(`${this.name} - CAN BUILD`);
+      return true;
     }
 
-    if (isHarvestTask(task) && this.store.getFreeCapacity() === 0) {
-      console.log(`${this.name} - COULD NOT HARVEST`);
-      return false;
+    if (
+      isHarvestTask(task) &&
+      this.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+    ) {
+      console.log(`${this.name} - CAN HARVEST`);
+      return true;
     }
-    console.log(`${this.name} - CAN DO ANYTHING`);
 
-    return true;
+    return false;
   }
 
   public run(): void {
-    const task = this.memory.task ?? this.coordinator.getTask();
+    const task =
+      this.memory.task ?? this.coordinator.getTask(this.isPossible.bind(this));
     this.memory.task = task;
 
     if (!task) {

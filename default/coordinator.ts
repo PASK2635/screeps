@@ -66,7 +66,10 @@ export default class Coordinator {
     this.memory.tasks.push(task);
   }
 
-  public getTask(): Task | undefined {
-    return this.memory.tasks.pop();
+  public getTask(isPossible: (task: Task) => boolean): Task | undefined {
+    const index = this.memory.tasks.findIndex((task) => isPossible(task));
+    const task = this.memory.tasks[index];
+    this.memory.tasks.splice(index, 1);
+    return task;
   }
 }
