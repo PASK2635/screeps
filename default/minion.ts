@@ -1,11 +1,11 @@
 import Coordinator from "./coordinator";
 
-const isBuildTask = (task: Task): task is Build => {
-  return (task as Build).name === "BUILD";
+const isBuildTask = (task: Task): task is Upkeep => {
+  return (task as Upkeep).name === "UPKEEP";
 };
 
-const isHarvestTask = (task: Task): task is Build => {
-  return (task as Build).name === "BUILD";
+const isHarvestTask = (task: Task): task is Upkeep => {
+  return (task as Harvest).name === "HARVEST";
 };
 
 export default class Minion extends Creep {
@@ -18,7 +18,7 @@ export default class Minion extends Creep {
       isBuildTask(task) &&
       this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
     ) {
-      console.log(`${this.name} - CAN BUILD`);
+      console.log(`${this.name} - CAN UPKEEP`);
       return true;
     }
 
@@ -51,9 +51,17 @@ export default class Minion extends Creep {
     switch (task.name) {
       case "HARVEST": {
         this.harvest(target as unknown as Source);
+        if (this.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+          this.memory.task = undefined;
+        }
+        break;
       }
-      case "BUILD": {
-        this.build(target as unknown as ConstructionSite);
+      case "UPKEEP": {
+        this.transfer(target as unknown as AnyStructure, RESOURCE_ENERGY);
+        if (this.store[RESOURCE_ENERGY] === 0) {
+          this.memory.task = undefined;
+        }
+        break;
       }
     }
     this.moveTo(target, {

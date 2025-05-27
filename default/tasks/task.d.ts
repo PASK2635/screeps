@@ -1,5 +1,5 @@
-type Build = {
-  name: "BUILD";
+type Upkeep = {
+  name: "UPKEEP";
   targetId: Id<AnyStructure>;
 };
 
@@ -8,4 +8,4 @@ type Harvest = {
   targetId: Id<Source>;
 };
 
-type Task = Build | Harvest;
+type Task = Upkeep | Harvest;

@@ -27,7 +27,7 @@ export default class Coordinator {
       });
   }
 
-  private getNewBuildTasks(): Build[] {
+  private getNewUpkeepTasks(): Upkeep[] {
     const targets = this.room.find(FIND_STRUCTURES, {
       filter: (structure) => {
         return (
@@ -39,7 +39,7 @@ export default class Coordinator {
       },
     });
     const existingBuildTasks = this.memory.tasks.filter(
-      (task): task is Build => task.name === "BUILD"
+      (task): task is Upkeep => task.name === "UPKEEP"
     );
     return targets
       .filter(
@@ -50,15 +50,14 @@ export default class Coordinator {
       )
       .map((target) => {
         return {
-          name: "BUILD",
+          name: "UPKEEP",
           targetId: target.id,
-        } as Build;
+        } as Upkeep;
       });
   }
-
   public monitor(): void {
     const harvest = this.getNewHarvestTasks();
-    const build = this.getNewBuildTasks();
+    const build = this.getNewUpkeepTasks();
     this.memory.tasks.push(...[...build, ...harvest]);
   }
 
@@ -69,6 +68,7 @@ export default class Coordinator {
   public getTask(isPossible: (task: Task) => boolean): Task | undefined {
     const index = this.memory.tasks.findIndex((task) => isPossible(task));
     const task = this.memory.tasks[index];
+    console.log(`Gave task - ${JSON.stringify(task)}`);
     this.memory.tasks.splice(index, 1);
     return task;
   }

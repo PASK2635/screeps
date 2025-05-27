@@ -1,5 +1,6 @@
 import Coordinator from "./coordinator";
 import Minion from "./minion";
+import spawner from "./spawner";
 
 const garbageCollection = () => {
   for (var name in Memory.creeps) {
@@ -12,6 +13,14 @@ const garbageCollection = () => {
 export function loop() {
   garbageCollection();
   const rooms = Object.values(Game.rooms);
+
+  const spawnerInstance = Game.spawns["Initial_Spawner"];
+  spawner.run(spawnerInstance, {
+    amount: 1,
+    body: [WORK, CARRY, MOVE],
+    role: "minion",
+  });
+
   for (const room of rooms) {
     const coordinator = new Coordinator(room);
     coordinator.monitor();

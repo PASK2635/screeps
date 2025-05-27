@@ -1,9 +1,5 @@
-type CreepConfig = {
+type CreepConfigs = {
   amount: number;
   body: BodyPartConstant[];
-  role: { run: (creep: Creep) => void };
-};
-
-type CreepConfigs = {
-  [name: string]: CreepConfig;
+  role: string;
 };
