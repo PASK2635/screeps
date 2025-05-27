@@ -1,3 +1,4 @@
+// TODO: Creeps should assign themselves to jobs which is then saved in memory. This way of "give a creep a job" makes it impossible to keep an overview of what's being done.
 export default class Coordinator {
   private memory: CoordinatorMemory;
   constructor(public room: Room) {
@@ -91,7 +92,7 @@ export default class Coordinator {
     const upgrader = this.getNewUpgraderTasks();
     const upkeep = this.getNewUpkeepTasks();
     const build = this.getNewBuildTasks();
-    this.memory.tasks.push(...[...upkeep, ...build, ...upgrader, ...harvest]);
+    this.memory.tasks.push(...[...build, ...upgrader, ...upkeep, ...harvest]);
   }
 
   public add(task: Task) {

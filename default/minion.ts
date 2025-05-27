@@ -70,6 +70,7 @@ export default class Minion extends Creep {
     const target = Game.getObjectById(task.targetId);
     if (!target) {
       this.say("😕 No target");
+      this.memory.task = undefined;
       return;
     }
     switch (task.name) {

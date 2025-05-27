@@ -16,7 +16,7 @@ function loop() {
     const rooms = Object.values(Game.rooms);
     const spawnerInstance = Game.spawns["Initial_Spawner"];
     spawner_1.default.run(spawnerInstance, {
-        amount: 10,
+        amount: 4,
         body: [WORK, CARRY, MOVE],
         role: "minion",
     });
