@@ -7,6 +7,16 @@ export default class Coordinator {
     };
   }
 
+  private getNewUpgraderTasks(): Upgrade[] {
+    if (!this.room.controller) return [];
+    return [
+      {
+        name: "UPGRADE",
+        targetId: this.room.controller.id,
+      },
+    ];
+  }
+
   private getNewHarvestTasks(): Harvest[] {
     const targets = this.room.find(FIND_SOURCES);
     const existingHarvestTasks = this.memory.tasks.filter(
@@ -55,10 +65,33 @@ export default class Coordinator {
         } as Upkeep;
       });
   }
+
+  private getNewBuildTasks(): Build[] {
+    const targets = this.room.find(FIND_CONSTRUCTION_SITES);
+    const existingBuildTasks = this.memory.tasks.filter(
+      (task): task is Build => task.name === "BUILD"
+    );
+    return targets
+      .filter(
+        (target) =>
+          !existingBuildTasks.some(
+            (existingTask) => existingTask.targetId === target.id
+          )
+      )
+      .map((target) => {
+        return {
+          name: "BUILD",
+          targetId: target.id,
+        } as Build;
+      });
+  }
+
   public monitor(): void {
     const harvest = this.getNewHarvestTasks();
-    const build = this.getNewUpkeepTasks();
-    this.memory.tasks.push(...[...build, ...harvest]);
+    const upgrader = this.getNewUpgraderTasks();
+    const upkeep = this.getNewUpkeepTasks();
+    const build = this.getNewBuildTasks();
+    this.memory.tasks.push(...[...upkeep, ...build, ...upgrader, ...harvest]);
   }
 
   public add(task: Task) {

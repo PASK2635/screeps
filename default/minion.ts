@@ -1,11 +1,19 @@
 import Coordinator from "./coordinator";
 
-const isBuildTask = (task: Task): task is Upkeep => {
+const isBuildTask = (task: Task): task is Build => {
+  return (task as Build).name === "BUILD";
+};
+
+const isUpkeepTask = (task: Task): task is Upkeep => {
   return (task as Upkeep).name === "UPKEEP";
 };
 
 const isHarvestTask = (task: Task): task is Upkeep => {
   return (task as Harvest).name === "HARVEST";
+};
+
+const isUpgradeTask = (task: Task): task is Upgrade => {
+  return (task as Upgrade).name === "UPGRADE";
 };
 
 export default class Minion extends Creep {
@@ -15,10 +23,26 @@ export default class Minion extends Creep {
 
   private isPossible(task: Task): boolean {
     if (
-      isBuildTask(task) &&
+      isUpgradeTask(task) &&
+      this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
+    ) {
+      console.log(`${this.name} - CAN UPGRADE`);
+      return true;
+    }
+
+    if (
+      isUpkeepTask(task) &&
       this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
     ) {
       console.log(`${this.name} - CAN UPKEEP`);
+      return true;
+    }
+
+    if (
+      isBuildTask(task) &&
+      this.store.getFreeCapacity(RESOURCE_ENERGY) === 0
+    ) {
+      console.log(`${this.name} - CAN BUILD`);
       return true;
     }
 
@@ -58,6 +82,20 @@ export default class Minion extends Creep {
       }
       case "UPKEEP": {
         this.transfer(target as unknown as AnyStructure, RESOURCE_ENERGY);
+        if (this.store[RESOURCE_ENERGY] === 0) {
+          this.memory.task = undefined;
+        }
+        break;
+      }
+      case "UPGRADE": {
+        this.upgradeController(target as unknown as StructureController);
+        if (this.store[RESOURCE_ENERGY] === 0) {
+          this.memory.task = undefined;
+        }
+        break;
+      }
+      case "BUILD": {
+        this.build(target as unknown as ConstructionSite);
         if (this.store[RESOURCE_ENERGY] === 0) {
           this.memory.task = undefined;
         }

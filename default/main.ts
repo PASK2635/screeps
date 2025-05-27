@@ -16,7 +16,7 @@ export function loop() {
 
   const spawnerInstance = Game.spawns["Initial_Spawner"];
   spawner.run(spawnerInstance, {
-    amount: 1,
+    amount: 10,
     body: [WORK, CARRY, MOVE],
     role: "minion",
   });
