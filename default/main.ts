@@ -1,27 +1,16 @@
-import roleHarvester from "./role.harvester";
-import roleUpgrader from "./role.upgrader";
-import roleBuilder from "./role.builder";
-import roleSpawner from "./role.spawner";
-
-const creepConfig: CreepConfigs = {
-  harvester: { amount: 1, body: [WORK, CARRY, MOVE], role: roleHarvester },
-  upgrader: { amount: 1, body: [WORK, CARRY, MOVE], role: roleUpgrader },
-  builder: { amount: 3, body: [WORK, CARRY, MOVE], role: roleBuilder },
-};
+import Coordinator from "./coordinator";
+import Minion from "./minion";
 
 export function loop() {
-  for (var name in Memory.creeps) {
-    if (!Game.creeps[name]) {
-      delete Memory.creeps[name];
+  const rooms = Object.values(Game.rooms);
+  for (const room of rooms) {
+    const coordinator = new Coordinator(room);
+    const creepsInRoom = Object.values(Game.creeps).filter(
+      (creep) => creep.room.name === room.name
+    );
+    const minions = creepsInRoom.map((creep) => new Minion(creep, coordinator));
+    for (const minion of minions) {
+      minion.say("TEST");
     }
-  }
-
-  const spawner = Game.spawns["Initial_Spawner"];
-  roleSpawner.run(spawner, creepConfig);
-
-  for (var name in Game.creeps) {
-    const creep = Game.creeps[name];
-    const config = creepConfig[creep.memory.role];
-    config.role.run(creep);
   }
 }
