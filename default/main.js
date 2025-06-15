@@ -22,7 +22,7 @@ function loop() {
     });
     for (const room of rooms) {
         const coordinator = new coordinator_1.default(room);
-        coordinator.monitor();
+        coordinator.findNewTasks();
         const creepsInRoom = Object.values(Game.creeps).filter((creep) => creep.room.name === room.name);
         const minions = creepsInRoom.map((creep) => new minion_1.default(creep, coordinator));
         for (const minion of minions) {

@@ -23,7 +23,7 @@ export function loop() {
 
   for (const room of rooms) {
     const coordinator = new Coordinator(room);
-    coordinator.monitor();
+    coordinator.findNewTasks();
     const creepsInRoom = Object.values(Game.creeps).filter(
       (creep) => creep.room.name === room.name
     );

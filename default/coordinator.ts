@@ -1,17 +1,20 @@
 // TODO: Creeps should assign themselves to jobs which is then saved in memory. This way of "give a creep a job" makes it impossible to keep an overview of what's being done.
 export default class Coordinator {
-  private memory: CoordinatorMemory;
-  constructor(public room: Room) {
-    Memory.coordinators = Memory.coordinators ?? {};
-    this.memory = Memory.coordinators?.[room.name] ?? {
-      // TODO: Memory doesn't work.
-      tasks: [],
-    };
+  constructor(public room: Room) {}
+
+  private getMemory(): CoordinatorMemory {
+    if (!Memory.coordinators) {
+      Memory.coordinators = {};
+    }
+    if (!Memory.coordinators[this.room.name]) {
+      Memory.coordinators[this.room.name] = { tasks: [] };
+    }
+    return Memory.coordinators[this.room.name];
   }
 
   private getNewUpgraderTasks(): Upgrade[] {
     if (!this.room.controller) return [];
-    const existingUpgraderTasks = this.memory.tasks.filter(
+    const existingUpgraderTasks = this.getMemory().tasks.filter(
       (task): task is Upgrade => task.name === "UPGRADE"
     );
     if (existingUpgraderTasks.length) return [];
@@ -25,22 +28,22 @@ export default class Coordinator {
 
   private getNewHarvestTasks(): Harvest[] {
     const targets = this.room.find(FIND_SOURCES);
-    const existingHarvestTasks = this.memory.tasks.filter(
+    const memory = this.getMemory();
+    const harvestTasks = memory.tasks.filter(
       (task): task is Harvest => task.name === "HARVEST"
     );
-    return targets
-      .filter(
-        (target) =>
-          !existingHarvestTasks.some(
-            (existingTask) => existingTask.targetId === target.id
-          )
-      )
-      .map((target) => {
-        return {
-          name: "HARVEST",
-          targetId: target.id,
-        } as Harvest;
-      });
+    const newHarvestTasks = targets.filter(
+      (target) =>
+        !harvestTasks.some(
+          (existingTask) => existingTask.targetId === target.id
+        )
+    );
+    return newHarvestTasks.map((target) => {
+      return {
+        name: "HARVEST",
+        targetId: target.id,
+      } as Harvest;
+    });
   }
 
   private getNewUpkeepTasks(): Upkeep[] {
@@ -54,7 +57,7 @@ export default class Coordinator {
         );
       },
     });
-    const existingBuildTasks = this.memory.tasks.filter(
+    const existingBuildTasks = this.getMemory().tasks.filter(
       (task): task is Upkeep => task.name === "UPKEEP"
     );
     return targets
@@ -74,7 +77,7 @@ export default class Coordinator {
 
   private getNewBuildTasks(): Build[] {
     const targets = this.room.find(FIND_CONSTRUCTION_SITES);
-    const existingBuildTasks = this.memory.tasks.filter(
+    const existingBuildTasks = this.getMemory().tasks.filter(
       (task): task is Build => task.name === "BUILD"
     );
     return targets
@@ -92,26 +95,43 @@ export default class Coordinator {
       });
   }
 
-  public monitor(): void {
+  public findNewTasks(): void {
     const harvest = this.getNewHarvestTasks();
     const upgrader = this.getNewUpgraderTasks();
     const upkeep = this.getNewUpkeepTasks();
     const build = this.getNewBuildTasks();
-    this.memory.tasks.push(...[...build, ...upgrader, ...upkeep, ...harvest]);
-    if (Memory.coordinators) {
-      Memory.coordinators[this.room.name] = this.memory;
+    this.getMemory().tasks.push(
+      ...[...build, ...upgrader, ...upkeep, ...harvest]
+    );
+  }
+
+  public getTask(
+    minionId: Id<Creep>,
+    isPossible: (task: Task) => boolean
+  ): Task | undefined {
+    const memory = this.getMemory();
+    const existingTask = memory.tasks.find(
+      (task) => task.assignedTo === minionId
+    );
+    if (existingTask) {
+      console.log(
+        `Minion ${minionId} already has task: ${JSON.stringify(existingTask)}`
+      );
+      return existingTask;
     }
-  }
 
-  public add(task: Task) {
-    this.memory.tasks.push(task);
-  }
-
-  public getTask(isPossible: (task: Task) => boolean): Task | undefined {
-    const index = this.memory.tasks.findIndex((task) => isPossible(task));
-    const task = this.memory.tasks[index];
+    const indexOfNewTask = memory.tasks.findIndex((task) => isPossible(task));
+    const task = memory.tasks[indexOfNewTask];
+    task.assignedTo = minionId;
     console.log(`Gave task - ${JSON.stringify(task)}`);
-    this.memory.tasks.splice(index, 1);
     return task;
+  }
+
+  public markTaskAsDone(minionId: Id<Creep>): void {
+    const existingTask = this.getMemory().tasks.find(
+      (task) => task.assignedTo === minionId
+    );
+    if (!existingTask) return;
+    existingTask.assignedTo = undefined;
   }
 }

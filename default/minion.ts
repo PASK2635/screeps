@@ -58,9 +58,10 @@ export default class Minion extends Creep {
   }
 
   public run(): void {
-    const task =
-      this.memory.task ?? this.coordinator.getTask(this.isPossible.bind(this));
-    this.memory.task = task;
+    const task = this.coordinator.getTask(
+      this.creep.id,
+      this.isPossible.bind(this)
+    );
 
     if (!task) {
       this.say(`❌ No tasks`);
@@ -70,35 +71,35 @@ export default class Minion extends Creep {
     const target = Game.getObjectById(task.targetId);
     if (!target) {
       this.say("😕 No target");
-      this.memory.task = undefined;
+      this.coordinator.markTaskAsDone(this.creep.id);
       return;
     }
     switch (task.name) {
       case "HARVEST": {
         this.harvest(target as unknown as Source);
         if (this.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-          this.memory.task = undefined;
+          this.coordinator.markTaskAsDone(this.creep.id);
         }
         break;
       }
       case "UPKEEP": {
         this.transfer(target as unknown as AnyStructure, RESOURCE_ENERGY);
         if (this.store[RESOURCE_ENERGY] === 0) {
-          this.memory.task = undefined;
+          this.coordinator.markTaskAsDone(this.creep.id);
         }
         break;
       }
       case "UPGRADE": {
         this.upgradeController(target as unknown as StructureController);
         if (this.store[RESOURCE_ENERGY] === 0) {
-          this.memory.task = undefined;
+          this.coordinator.markTaskAsDone(this.creep.id);
         }
         break;
       }
       case "BUILD": {
         this.build(target as unknown as ConstructionSite);
         if (this.store[RESOURCE_ENERGY] === 0) {
-          this.memory.task = undefined;
+          this.coordinator.markTaskAsDone(this.creep.id);
         }
         break;
       }
