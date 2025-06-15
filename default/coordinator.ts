@@ -2,6 +2,7 @@
 export default class Coordinator {
   private memory: CoordinatorMemory;
   constructor(public room: Room) {
+    Memory.coordinators = Memory.coordinators ?? {};
     this.memory = Memory.coordinators?.[room.name] ?? {
       // TODO: Memory doesn't work.
       tasks: [],
@@ -10,6 +11,10 @@ export default class Coordinator {
 
   private getNewUpgraderTasks(): Upgrade[] {
     if (!this.room.controller) return [];
+    const existingUpgraderTasks = this.memory.tasks.filter(
+      (task): task is Upgrade => task.name === "UPGRADE"
+    );
+    if (existingUpgraderTasks.length) return [];
     return [
       {
         name: "UPGRADE",
@@ -93,6 +98,9 @@ export default class Coordinator {
     const upkeep = this.getNewUpkeepTasks();
     const build = this.getNewBuildTasks();
     this.memory.tasks.push(...[...build, ...upgrader, ...upkeep, ...harvest]);
+    if (Memory.coordinators) {
+      Memory.coordinators[this.room.name] = this.memory;
+    }
   }
 
   public add(task: Task) {
